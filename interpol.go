@@ -7,14 +7,22 @@ import (
 type Templater struct {
 	buf bytes.Buffer
 
-	gf getterFunc
+	gfs getterFuncSpawner
 }
 
 // func used to retrieve the value from an object (struct or map)
-type getterFunc func(interface{}, string) ([]byte, error)
+type getterFunc func(string) ([]byte, error)
+
+type getterFuncSpawner func(interface{}) (getterFunc, error)
 
 func (t *Templater) Exec(s string, data interface{}) (string, error) {
 	t.buf.Reset()
+
+	// Create a getterFunc for the data using the getterFuncSpawner
+	gf, err := t.gfs(data)
+	if err != nil {
+		return ``, err
+	}
 
 	// blockStart is the current block's starting position
 	// (either simple text or variable's name)
@@ -47,7 +55,7 @@ func (t *Templater) Exec(s string, data interface{}) (string, error) {
 
 		if isVarBlock && s[i] == '}' && s[i-1] == '}' {
 			// Variable name finished, look up and write away
-			value, err := t.gf(data, string(s[blockStart:i-1]))
+			value, err := gf(string(s[blockStart : i-1]))
 			if err != nil {
 				return ``, err
 			}

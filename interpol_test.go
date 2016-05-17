@@ -11,11 +11,13 @@ func TestInterpol(t *testing.T) {
 
 		Convey("Interpolation, reverse func", func() {
 			// This func gets the variable name, reverses it and returns back.
-			tm.gf = func(_ interface{}, data string) (result []byte, err error) {
-				for i := len(data) - 1; i >= 0; i-- {
-					result = append(result, data[i])
-				}
-				return result, nil
+			tm.gfs = func(_ interface{}) (getterFunc, error) {
+				return func(data string) (result []byte, err error) {
+					for i := len(data) - 1; i >= 0; i-- {
+						result = append(result, data[i])
+					}
+					return result, nil
+				}, nil
 			}
 
 			Convey("Simple interpolation", func() {
@@ -36,9 +38,10 @@ func TestInterpol(t *testing.T) {
 
 		})
 		Convey("Edge cases", func() {
-
-			tm.gf = func(_ interface{}, varname string) ([]byte, error) {
-				return []byte(varname), nil
+			tm.gfs = func(_ interface{}) (getterFunc, error) {
+				return func(data string) ([]byte, error) {
+					return []byte(data), nil
+				}, nil
 			}
 
 			Convey("Empty string", func() {
