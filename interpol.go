@@ -4,17 +4,34 @@ import (
 	"bytes"
 )
 
+// Templater is the parser, which was set up for specific data
+// type. It has its own internal state and buffer.
+//
+// Each goroutine should initiate its own Templater - it supports
+// only synchronous operations.
+//
+// Use New() to create the Templater.
 type Templater struct {
-	buf bytes.Buffer
+	buf *bytes.Buffer
 
 	gfs getterFuncSpawner
 }
 
-// func used to retrieve the value from an object (struct or map)
-type getterFunc func(string) ([]byte, error)
+// New creates new Templater configured for passed data type.
+//
+// Pass (optionally) empty struct that will be passed for each Exec(),
+// i.e. use New(map[string]string{}) if you'll use the Exec() with
+// map[string]string as data source container.
+func New(d interface{}) (*Templater, error) {
+	gfs, err := getterSpawnerSelector(d)
+	if err != nil {
+		return nil, err
+	}
 
-type getterFuncSpawner func(interface{}) (getterFunc, error)
+	return &Templater{buf: bytes.NewBuffer([]byte{}), gfs: gfs}, nil
+}
 
+// Exec interpolates the values from data into the string.
 func (t *Templater) Exec(s string, data interface{}) (string, error) {
 	t.buf.Reset()
 
@@ -35,11 +52,14 @@ func (t *Templater) Exec(s string, data interface{}) (string, error) {
 
 	length := len(s)
 
+	// Loop over the string
 	for i := 0; i < length; i++ {
+		// Nothing to do on pos 0
 		if i == 0 {
 			continue
 		}
 
+		// Non-special character; loop over
 		if s[i] != '{' && s[i] != '}' {
 			continue
 		}
@@ -66,6 +86,8 @@ func (t *Templater) Exec(s string, data interface{}) (string, error) {
 			blockStart = i + 1
 		}
 	}
+
+	// Dump leftovers if there's an
 	if lastWrite != length {
 		t.buf.WriteString(s[lastWrite:length])
 	}

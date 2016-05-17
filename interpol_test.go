@@ -1,6 +1,7 @@
 package interpol
 
 import (
+	"bytes"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
@@ -8,6 +9,7 @@ import (
 func TestInterpol(t *testing.T) {
 	Convey("With templater", t, func() {
 		tm := Templater{}
+		tm.buf = bytes.NewBuffer([]byte{})
 
 		Convey("Interpolation, reverse func", func() {
 			// This func gets the variable name, reverses it and returns back.
