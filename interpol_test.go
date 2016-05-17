@@ -78,5 +78,22 @@ func TestInterpol(t *testing.T) {
 				So(got, ShouldEqual, `foo bar qwe`)
 			})
 		}) // Edge cases final
+
+		Convey("Interpolation, map[string]string", func() {
+			tm, err := New(map[string]string{})
+			So(err, ShouldBeNil)
+
+			data := map[string]string{
+				"var1": "look!",
+				"var2": "string",
+			}
+
+			str := `{{var1}} some {{var2}}'s coming!`
+
+			got, err := tm.Exec(str, data)
+			So(err, ShouldBeNil)
+			So(got, ShouldEqual, `look! some string's coming!`)
+
+		})
 	})
 }
