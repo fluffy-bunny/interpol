@@ -1,15 +1,40 @@
 package interpol
 
+import (
+	"errors"
+	"reflect"
+)
+
 // func used to retrieve the value from an object (struct or map)
 type getterFunc func(string) ([]byte, error)
 type getterFuncSpawner func(interface{}) (getterFunc, error)
 
 func getterSpawnerSelector(v interface{}) (getterFuncSpawner, error) {
-	switch v.(type) {
-	case map[string]string:
+	val := reflect.ValueOf(v)
+	switch val.Type().Kind() {
+	case reflect.Map:
+		// Map type, get selector based on the value
+		return getMapSelector(val.Type())
+	}
+	return nil, ErrSpawnerNotFound
+}
+
+// getMapSelector retrieves the spawner based on the map's value type.
+func getMapSelector(v reflect.Type) (getterFuncSpawner, error) {
+	if v.Key().Kind() != reflect.String {
+		return nil, errors.New("Non-string keyed maps are not supported!")
+	}
+	switch v.Elem().Kind() {
+	case reflect.String:
+		// simple string-string map
 		return mapStringStringSpawner, nil
-	case map[string][]byte:
-		return mapStringByteSpawner, nil
+	case reflect.Slice:
+		// map of slice
+		switch v.Elem().Elem().Kind() {
+		// safe to assume that's []byte
+		case reflect.Uint8:
+			return mapStringByteSpawner, nil
+		}
 	}
 	return nil, ErrSpawnerNotFound
 }

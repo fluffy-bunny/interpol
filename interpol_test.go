@@ -95,5 +95,21 @@ func TestInterpol(t *testing.T) {
 			So(got, ShouldEqual, `look! some string's coming!`)
 
 		})
+		Convey("Interpolation, map[string][]byte", func() {
+			tm, err := New(map[string][]byte{})
+			So(err, ShouldBeNil)
+
+			data := map[string][]byte{
+				"var1": []byte("look!"),
+				"var2": []byte("string"),
+			}
+
+			str := `{{var1}} some {{var2}}'s coming!`
+
+			got, err := tm.Exec(str, data)
+			So(err, ShouldBeNil)
+			So(got, ShouldEqual, `look! some string's coming!`)
+
+		})
 	})
 }
