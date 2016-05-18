@@ -2,6 +2,7 @@ package interpol
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 )
 
@@ -36,6 +37,10 @@ func getMapSelector(v reflect.Type) (getterFuncSpawner, error) {
 			return mapStringByteSpawner, nil
 		}
 	}
+
+	if v.Elem().Implements(reflect.TypeOf((*fmt.Stringer)(nil)).Elem()) {
+		return mapStringStringerSpawner, nil
+	}
 	return nil, ErrSpawnerNotFound
 }
 
@@ -48,6 +53,18 @@ func mapStringStringSpawner(v interface{}) (getterFunc, error) {
 			return nil, ErrMapKeyNotFound
 		}
 		return []byte(value), nil
+	}, nil
+}
+
+// mapStringStringer is used for map[string]fmt.Stringer lookup.
+func mapStringStringerSpawner(v interface{}) (getterFunc, error) {
+	refVal := reflect.ValueOf(v)
+	return func(key string) ([]byte, error) {
+		value := refVal.MapIndex(reflect.ValueOf(key))
+		if !value.IsValid() {
+			return nil, ErrMapKeyNotFound
+		}
+		return []byte(value.Interface().(fmt.Stringer).String()), nil
 	}, nil
 }
 

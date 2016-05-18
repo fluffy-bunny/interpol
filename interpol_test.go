@@ -4,6 +4,7 @@ import (
 	"bytes"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+	"time"
 )
 
 func TestInterpol(t *testing.T) {
@@ -109,6 +110,23 @@ func TestInterpol(t *testing.T) {
 			got, err := tm.Exec(str, data)
 			So(err, ShouldBeNil)
 			So(got, ShouldEqual, `look! some string's coming!`)
+
+		})
+		Convey("Interpolation, map[string]fmt.Stringer", func() {
+			tm, err := New(map[string]time.Time{})
+			So(err, ShouldBeNil)
+
+			const longForm = "Jan 2, 2006 at 3:04pm (MST)"
+			data := map[string]time.Time{
+				"var1": time.Unix(1405544146, 0).In(time.UTC),
+				"var2": time.Unix(1463560190, 0).In(time.UTC),
+			}
+
+			str := `First time is: {{var1}}... And second time is {{var2}}`
+
+			got, err := tm.Exec(str, data)
+			So(err, ShouldBeNil)
+			So(got, ShouldEqual, `First time is: 2014-07-16 20:55:46 +0000 UTC... And second time is 2016-05-18 08:29:50 +0000 UTC`)
 
 		})
 	})
