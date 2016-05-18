@@ -14,6 +14,8 @@ func getterSpawnerSelector(v interface{}) (getterFuncSpawner, error) {
 	case reflect.Map:
 		// Map type, get selector based on the value
 		return getMapSelector(val.Type())
+	case reflect.Struct:
+		return structSpawner, nil
 	}
 	return nil, ErrSpawnerNotFound
 }
