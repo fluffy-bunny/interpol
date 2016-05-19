@@ -30,7 +30,7 @@ func structWalk(key string, v reflect.Value) (reflect.Value, error) {
 	if !field.IsValid() {
 		return field, ErrStructKeyNotFound
 	}
-	if keys[1] == `` {
+	if len(keys) == 1 {
 		return field, nil
 	}
 
