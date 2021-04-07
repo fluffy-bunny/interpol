@@ -64,7 +64,7 @@ func (t *Templater) Exec(s string, data interface{}) (string, error) {
 			continue
 		}
 
-		if s[i] == '{' && s[i-1] == '{' {
+		if s[i] == '{' && s[i-1] == '$' {
 			// Variable name started, write everything before
 			t.buf.WriteString(s[blockStart : i-1])
 			isVarBlock = true
@@ -73,9 +73,9 @@ func (t *Templater) Exec(s string, data interface{}) (string, error) {
 			continue
 		}
 
-		if isVarBlock && s[i] == '}' && s[i-1] == '}' {
+		if isVarBlock && s[i] == '}' {
 			// Variable name finished, look up and write away
-			value, err := gf(string(s[blockStart : i-1]))
+			value, err := gf(string(s[blockStart:i]))
 			if err != nil {
 				return ``, err
 			}

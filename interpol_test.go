@@ -2,9 +2,10 @@ package interpol
 
 import (
 	"bytes"
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 	"time"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestInterpol(t *testing.T) {
@@ -24,7 +25,7 @@ func TestInterpol(t *testing.T) {
 			}
 
 			Convey("Simple interpolation", func() {
-				str := `foo {{bar}}baz}`
+				str := `foo ${bar}baz}`
 
 				got, err := tm.Exec(str, map[string]string{})
 				So(err, ShouldBeNil)
@@ -32,11 +33,11 @@ func TestInterpol(t *testing.T) {
 			})
 
 			Convey("Multiple interpolation, bad parens", func() {
-				str := `{{foo}} {{bar} }}{{bazz}}`
+				str := `${foo} ${bar  }${bazz}`
 
 				got, err := tm.Exec(str, map[string]string{})
 				So(err, ShouldBeNil)
-				So(got, ShouldEqual, `oof  }rabzzab`)
+				So(got, ShouldEqual, `oof   rabzzab`)
 			})
 
 		})
@@ -67,13 +68,13 @@ func TestInterpol(t *testing.T) {
 				So(got, ShouldEqual, str)
 			})
 			Convey("Variable @ start", func() {
-				str := `{{qwe}} foo bar`
+				str := `${qwe} foo bar`
 				got, err := tm.Exec(str, map[string]string{})
 				So(err, ShouldBeNil)
 				So(got, ShouldEqual, `qwe foo bar`)
 			})
 			Convey("Variable @ end", func() {
-				str := `foo bar {{qwe}}`
+				str := `foo bar ${qwe}`
 				got, err := tm.Exec(str, map[string]string{})
 				So(err, ShouldBeNil)
 				So(got, ShouldEqual, `foo bar qwe`)
@@ -89,7 +90,7 @@ func TestInterpol(t *testing.T) {
 				"var2": "string",
 			}
 
-			str := `{{var1}} some {{var2}}'s coming!`
+			str := `${var1} some ${var2}'s coming!`
 
 			got, err := tm.Exec(str, data)
 			So(err, ShouldBeNil)
@@ -105,7 +106,7 @@ func TestInterpol(t *testing.T) {
 				"var2": []byte("string"),
 			}
 
-			str := `{{var1}} some {{var2}}'s coming!`
+			str := `${var1} some ${var2}'s coming!`
 
 			got, err := tm.Exec(str, data)
 			So(err, ShouldBeNil)
@@ -122,7 +123,7 @@ func TestInterpol(t *testing.T) {
 				"var2": time.Unix(1463560190, 0).In(time.UTC),
 			}
 
-			str := `First time is: {{var1}}... And second time is {{var2}}`
+			str := `First time is: ${var1}... And second time is ${var2}`
 
 			got, err := tm.Exec(str, data)
 			So(err, ShouldBeNil)
